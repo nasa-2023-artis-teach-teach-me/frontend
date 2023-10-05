@@ -1,0 +1,5 @@
+{
+	".*rc": ["prettier --write --ignore-unknown"],
+	"*.{html,md,json}": ["prettier --write"],
+	"*.{ts,js,tsx,jsx,cjs,vue,svelte}": ["eslint --fix", "prettier --write"]
+}
