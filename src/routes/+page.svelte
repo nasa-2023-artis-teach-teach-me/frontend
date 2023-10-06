@@ -1,49 +1,97 @@
 <script lang="ts">
-	import type { Control, LatLngTuple, MapOptions, TileLayerOptions } from "leaflet";
-	import { LeafletMap, Marker, Popup, ScaleControl, TileLayer } from "svelte-leafletjs";
+	import { MapLibre, Control, ControlGroup, ControlButton } from "svelte-maplibre";
 	import "../index.css";
-	// import { onDestroy } from "svelte";
-
-	const mapOptions: MapOptions = {
-		center: [24.7880827, 120.9995426],
-		zoom: 18,
-	};
-	const tileUrl = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-	const tileLayerOptions: TileLayerOptions = {
-		minZoom: 0,
-		maxZoom: 20,
-		maxNativeZoom: 19,
-		attribution: "© OpenStreetMap contributors",
-	};
-	const scaleControlOptions: Control.ScaleOptions = {
-		maxWidth: 200,
-	};
-
-	let scaleControl;
-	let pos: LatLngTuple = [24.787359, 120.9979121];
-
-	// const interval = setInterval(() => {
-	// 	pos = [pos[0] + (Math.random() - 0.5) * 0.0001, pos[1] + (Math.random() - 0.5) * 0.0001];
-	// }, 100);
-
-	// onDestroy(() => {
-	// 	clearInterval(interval);
-	// });
+	import { tweened } from "svelte/motion";
+	import { cubicOut } from "svelte/easing";
 </script>
 
-<div class=" h-screen w-screen">
-	<LeafletMap options={mapOptions}>
-		<TileLayer url={tileUrl} options={tileLayerOptions} />
-		<Marker latLng={pos}>
-			<Popup>
-				<div class=" h-full w-full bg-black">
-					<h1>aaa</h1>
-					<h1>aaaeihgp;aeihgn;aejg;a</h1>
-					<h1>aaa</h1>
-					<h1>aaa</h1>
-				</div>
-			</Popup>
-		</Marker>
-		<ScaleControl bind:this={scaleControl} position="bottomleft" options={scaleControlOptions} />
-	</LeafletMap>
-</div>
+<MapLibre
+	center={[120.9995426, 24.7880827]}
+	zoom={18}
+	class="map h-screen w-screen"
+	standardControls
+	style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+	pitch={45}
+	bearing={-15}
+	let:map
+	filterLayers={(l) => {
+		// Hide the built-in 3D building layer since we're doing our own.
+		return l.id !== "building-3d";
+	}}
+>
+	<Control position="top-right">
+		<ControlGroup>
+			<ControlButton
+				on:click={() => {
+					const pitch = tweened(map?.getPitch(), {
+						duration: 500,
+						easing: cubicOut,
+					});
+
+					pitch.subscribe((v) => {
+						console.log(v);
+						map?.setPitch(v);
+					});
+
+					pitch.set((map?.getPitch() ?? 0) - 15);
+				}}
+			>
+				<img src="up-arrow.svg" alt="" class=" h-5 w-5" />
+			</ControlButton>
+			<ControlButton
+				on:click={() => {
+					const pitch = tweened(map?.getPitch(), {
+						duration: 500,
+						easing: cubicOut,
+					});
+
+					pitch.subscribe((v) => {
+						console.log(v);
+						map?.setPitch(v);
+					});
+
+					pitch.set((map?.getPitch() ?? 0) + 15);
+				}}
+			>
+				<img src="down-arrow.svg" alt="" class=" h-5 w-5" />
+			</ControlButton>
+		</ControlGroup>
+		<div class="h-3" />
+		<ControlGroup>
+			<ControlButton
+				on:click={() => {
+					const bearing = tweened(map?.getBearing(), {
+						duration: 500,
+						easing: cubicOut,
+					});
+
+					bearing.subscribe((v) => {
+						console.log(v);
+						map?.setBearing(v);
+					});
+
+					bearing.set((map?.getBearing() ?? 0) + 15);
+				}}
+			>
+				<img src="rotate-l.svg" alt="" class=" h-3 w-3" />
+			</ControlButton>
+			<ControlButton
+				on:click={() => {
+					const bearing = tweened(map?.getBearing(), {
+						duration: 500,
+						easing: cubicOut,
+					});
+
+					bearing.subscribe((v) => {
+						console.log(v);
+						map?.setBearing(v);
+					});
+
+					bearing.set((map?.getBearing() ?? 0) - 15);
+				}}
+			>
+				<img src="rotate-r.svg" alt="" class=" h-3 w-3" />
+			</ControlButton>
+		</ControlGroup>
+	</Control>
+</MapLibre>
