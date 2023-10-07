@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { MapLibre, Control, ControlGroup, ControlButton, Marker } from "svelte-maplibre";
+	import {
+		MapLibre,
+		Control,
+		ControlGroup,
+		ControlButton,
+		Marker,
+		GeoJSON,
+		HeatmapLayer,
+	} from "svelte-maplibre";
 	import "../index.css";
 	import { tweened } from "svelte/motion";
 	import { cubicOut } from "svelte/easing";
@@ -7,7 +15,7 @@
 	import type { LngLatLike } from "maplibre-gl";
 
 	let fireLayer: FireLayer;
-	let zoom = 18;
+	let zoom = 10;
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
 	let reportingPos: LngLatLike;
 	let bound: "none" | "up" | "down" = "none";
@@ -58,25 +66,20 @@
 
 <MapLibre
 	center={[-80.130936, 27.016399]}
-	zoom={16}
+	bind:zoom
 	class="map h-screen w-screen"
 	standardControls
 	style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
 	pitch={45}
 	bearing={-15}
-	filterLayers={(l) => {
-		// Hide the built-in 3D building layer since we're doing our own.
-		return l.id !== "building-3d";
-	}}
 	on:load={(e) => {
 		const map = e.detail;
 		map.setMaxZoom(18);
 
-		fireLayer = new FireLayer(firePos, map);
+		fireLayer = new FireLayer(firePos, map, zoom);
 		map.addLayer(fireLayer);
 	}}
-	on:zoom={(e) => {
-		zoom = e.detail.target.getZoom();
+	on:zoom={() => {
 		fireLayer.setFireScale(zoom);
 	}}
 	let:map
@@ -179,11 +182,237 @@
 				{/if}
 			</ControlGroup>
 		</Control>
-		{#if zoom < 13}
-			{#each firePos as lngLat}
+		<GeoJSON
+			id="earthquakes"
+			data={{
+				type: "FeatureCollection",
+				features: [
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-76.787148, 35.479481, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-78.369896, 35.422173, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-78.588127, 36.58757, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-77.324165, 37.34866, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-77.323593, 37.353703, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-82.808647, 31.688133, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-82.810219, 31.68717, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-82.897942, 32.023228, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-82.901718, 32.022118, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-82.898392, 32.016663, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-84.197365, 31.72546, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-80.130936, 27.016399, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-80.134659, 27.016724, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-77.321487, 37.354218, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-77.324341, 37.348251, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-94.577583, 38.536098, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-80.898453, 33.377056, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.003372, 36.507267, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.109924, 34.793766, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-97.195557, 31.855425, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-103.803642, 32.653038, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-93.598213, 34.073982, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-93.828712, 34.031563, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-93.344254, 31.925722, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-103.807228, 32.65332, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-94.373993, 34.435837, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.06739, 32.80777, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.669273, 33.498173, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.728203, 32.680237, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-84.024101, 31.607441, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.445366, 32.23999, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.665588, 33.494164, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-84.020615, 31.606611, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.669945, 33.494781, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-94.360718, 33.194942, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.369263, 34.522625, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.368515, 34.526001, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.367508, 34.378693, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-95.378006, 34.523849, 0] },
+					},
+					{
+						type: "Feature",
+						properties: {},
+						geometry: { type: "Point", coordinates: [-96.865967, 34.745548, 0] },
+					},
+				],
+			}}
+		>
+			<HeatmapLayer
+				maxzoom={20}
+				paint={{
+					"heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+					"heatmap-color": [
+						"interpolate",
+						["linear"],
+						["heatmap-density"],
+						0,
+						"rgba(255,255,255,0)",
+						1,
+						"rgb(255,34,0)",
+					],
+					"heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 7, 20, 16, 1000],
+					"heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 10, 1, 20, 0],
+				}}
+			/>
+		</GeoJSON>
+		{#if 7 < zoom}
+			{#each firePos as lngLat (lngLat)}
 				<Marker
 					{lngLat}
-					class="grid h-3 w-3 place-items-center rounded-full bg-red-600 text-black  focus:outline-2 focus:outline-black"
+					class="hover:scale-120 grid h-3 w-3 place-items-center rounded-full bg-red-600 text-black transition-[background-color] hover:bg-red-300 focus:outline-2 focus:outline-black"
 					on:click={() => {
 						map.flyTo({
 							center: lngLat,

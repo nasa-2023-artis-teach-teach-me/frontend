@@ -7,7 +7,7 @@ import particleFire from "three-particle-fire";
 particleFire.install({ THREE: THREE });
 
 export class FireLayer implements CustomLayerInterface {
-	id: string = "three-layer";
+	id: string = "fire-layer";
 	type = "custom" as const;
 	renderingMode: "3d" | "2d" = "3d";
 
@@ -43,7 +43,11 @@ export class FireLayer implements CustomLayerInterface {
 
 	private l: THREE.Matrix4;
 
-	constructor(private fireCoords: maplibregl.LngLatLike[], private map: maplibregl.Map) {
+	constructor(
+		private fireCoords: maplibregl.LngLatLike[],
+		private map: maplibregl.Map,
+		private scale: number,
+	) {
 		const modelAsMercatorCoordinate = maplibregl.MercatorCoordinate.fromLngLat(
 			this.cameraOrigin,
 			this.modelAltitude,
@@ -100,7 +104,7 @@ export class FireLayer implements CustomLayerInterface {
 		});
 
 		this.renderer.autoClear = false;
-		this.setFireScale(18);
+		this.setFireScale(this.scale);
 
 		for (const fireCoord of this.fireCoords) {
 			this.addNewFire(fireCoord);
@@ -161,7 +165,9 @@ export class FireLayer implements CustomLayerInterface {
 	setFireScale(scale: number) {
 		this.fireMat.setPerspective(
 			this.camera.fov,
-			window.innerHeight * Math.max(16.5 * scale - 197, 0),
+			Math.max(18 * scale - 200, 0) *
+				(this.renderer?.getSize(new THREE.Vector2(window.innerWidth, window.innerHeight)).height ||
+					0),
 		);
 	}
 }
