@@ -55,7 +55,7 @@
 
 <MapLibre
 	center={[-80.130936, 27.016399]}
-	zoom={18}
+	zoom={16}
 	class="map h-screen w-screen"
 	standardControls
 	style="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
@@ -135,7 +135,7 @@
 				<img src="rotate-r.svg" alt="" class=" h-3 w-3" />
 			</ControlButton>
 		</ControlGroup>
-		{#if zoom < 15}
+		{#if zoom < 13}
 			{#each firePos as lngLat}
 				<Marker
 					{lngLat}
@@ -143,7 +143,7 @@
 					on:click={() => {
 						map?.flyTo({
 							center: lngLat,
-							zoom: 18,
+							zoom: 16,
 							speed: 1.25,
 						});
 					}}

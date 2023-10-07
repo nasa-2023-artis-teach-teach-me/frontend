@@ -29,9 +29,9 @@ export class FireLayer implements CustomLayerInterface {
 	private renderer: THREE.WebGLRenderer | undefined = undefined;
 	private clock: THREE.Clock = new THREE.Clock();
 
-	private fireRadius = 5;
-	private fireHeight = 30;
-	private particleCount = 1000;
+	private fireRadius = 150;
+	private fireHeight = 500;
+	private particleCount = 10000;
 
 	private filreGeo = new particleFire.Geometry(
 		this.fireRadius,
