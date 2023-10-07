@@ -10,6 +10,7 @@
 	let zoom = 18;
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
 	let reportingPos: LngLatLike;
+	let bound: "none" | "up" | "down" = "none";
 
 	const firePos: LngLatLike[] = [
 		[-76.787148, 35.479481],
@@ -69,10 +70,10 @@
 	}}
 	on:load={(e) => {
 		const map = e.detail;
+		map.setMaxZoom(18);
+
 		fireLayer = new FireLayer(firePos, map);
 		map.addLayer(fireLayer);
-
-		map.setMaxZoom(18);
 	}}
 	on:zoom={(e) => {
 		zoom = e.detail.target.getZoom();
@@ -90,11 +91,17 @@
 							easing: cubicOut,
 						});
 
+						if ((map.getPitch() ?? 0) - 15 <= 0) {
+							bound = "up";
+						} else {
+							bound = "none";
+						}
+
 						pitch.subscribe((v) => map.setPitch(v));
 						pitch.set((map.getPitch() ?? 0) - 15);
 					}}
 				>
-					<img src="up-arrow.svg" alt="" class=" h-5 w-5" />
+					<img src="up-arrow.svg" alt="" class=" h-5 w-5" class:opacity-20={bound == "up"} />
 				</ControlButton>
 				<ControlButton
 					on:click={() => {
@@ -103,11 +110,17 @@
 							easing: cubicOut,
 						});
 
+						if ((map.getPitch() ?? 0) + 15 >= 60) {
+							bound = "down";
+						} else {
+							bound = "none";
+						}
+
 						pitch.subscribe((v) => map.setPitch(v));
 						pitch.set((map.getPitch() ?? 0) + 15);
 					}}
 				>
-					<img src="down-arrow.svg" alt="" class=" h-5 w-5" />
+					<img src="down-arrow.svg" alt="" class=" h-5 w-5" class:opacity-20={bound == "down"} />
 				</ControlButton>
 			</ControlGroup>
 			<ControlGroup>
