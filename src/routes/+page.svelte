@@ -8,6 +8,8 @@
 
 	let fireLayer: FireLayer;
 	let zoom = 18;
+	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
+	let reportingPos: LngLatLike;
 
 	const firePos: LngLatLike[] = [
 		[-76.787148, 35.479481],
@@ -78,70 +80,99 @@
 	}}
 	let:map
 >
-	<Control position="top-right" class="flex flex-col gap-y-2.5">
-		<ControlGroup>
-			<ControlButton
-				on:click={() => {
-					const pitch = tweened(map?.getPitch(), {
-						duration: 500,
-						easing: cubicOut,
-					});
+	{#if map}
+		<Control position="top-right" class="flex flex-col gap-y-2.5">
+			<ControlGroup>
+				<ControlButton
+					on:click={() => {
+						const pitch = tweened(map.getPitch(), {
+							duration: 500,
+							easing: cubicOut,
+						});
 
-					pitch.subscribe((v) => map?.setPitch(v));
-					pitch.set((map?.getPitch() ?? 0) - 15);
-				}}
-			>
-				<img src="up-arrow.svg" alt="" class=" h-5 w-5" />
-			</ControlButton>
-			<ControlButton
-				on:click={() => {
-					const pitch = tweened(map?.getPitch(), {
-						duration: 500,
-						easing: cubicOut,
-					});
+						pitch.subscribe((v) => map.setPitch(v));
+						pitch.set((map.getPitch() ?? 0) - 15);
+					}}
+				>
+					<img src="up-arrow.svg" alt="" class=" h-5 w-5" />
+				</ControlButton>
+				<ControlButton
+					on:click={() => {
+						const pitch = tweened(map.getPitch(), {
+							duration: 500,
+							easing: cubicOut,
+						});
 
-					pitch.subscribe((v) => map?.setPitch(v));
-					pitch.set((map?.getPitch() ?? 0) + 15);
-				}}
-			>
-				<img src="down-arrow.svg" alt="" class=" h-5 w-5" />
-			</ControlButton>
-		</ControlGroup>
-		<ControlGroup>
-			<ControlButton
-				on:click={() => {
-					const bearing = tweened(map?.getBearing(), {
-						duration: 500,
-						easing: cubicOut,
-					});
+						pitch.subscribe((v) => map.setPitch(v));
+						pitch.set((map.getPitch() ?? 0) + 15);
+					}}
+				>
+					<img src="down-arrow.svg" alt="" class=" h-5 w-5" />
+				</ControlButton>
+			</ControlGroup>
+			<ControlGroup>
+				<ControlButton
+					on:click={() => {
+						const bearing = tweened(map.getBearing(), {
+							duration: 500,
+							easing: cubicOut,
+						});
 
-					bearing.subscribe((v) => map?.setBearing(v));
-					bearing.set((map?.getBearing() ?? 0) + 15);
-				}}
-			>
-				<img src="rotate-l.svg" alt="" class=" h-3 w-3" />
-			</ControlButton>
-			<ControlButton
-				on:click={() => {
-					const bearing = tweened(map?.getBearing(), {
-						duration: 500,
-						easing: cubicOut,
-					});
+						bearing.subscribe((v) => map.setBearing(v));
+						bearing.set((map.getBearing() ?? 0) + 15);
+					}}
+				>
+					<img src="rotate-l.svg" alt="" class=" h-3 w-3" />
+				</ControlButton>
+				<ControlButton
+					on:click={() => {
+						const bearing = tweened(map.getBearing(), {
+							duration: 500,
+							easing: cubicOut,
+						});
 
-					bearing.subscribe((v) => map?.setBearing(v));
-					bearing.set((map?.getBearing() ?? 0) - 15);
-				}}
-			>
-				<img src="rotate-r.svg" alt="" class=" h-3 w-3" />
-			</ControlButton>
-		</ControlGroup>
+						bearing.subscribe((v) => map.setBearing(v));
+						bearing.set((map.getBearing() ?? 0) - 15);
+					}}
+				>
+					<img src="rotate-r.svg" alt="" class=" h-3 w-3" />
+				</ControlButton>
+			</ControlGroup>
+			<ControlGroup>
+				{#if reportingStatus == "close"}
+					<ControlButton
+						on:click={() => {
+							reportingStatus = "selectingPos";
+							reportingPos = map.getCenter();
+						}}
+					>
+						<img src="report.svg" alt="" class=" h-5 w-5" />
+					</ControlButton>
+				{:else if reportingStatus == "selectingPos"}
+					<ControlButton
+						on:click={() => {
+							reportingStatus = "fillingDetail";
+						}}
+					>
+						<img src="confirm.svg" alt="" class=" h-4 w-4" />
+					</ControlButton>
+					<ControlButton
+						on:click={() => {
+							reportingStatus = "close";
+						}}
+					>
+						<img src="cancel.svg" alt="" class=" h-4 w-4" />
+					</ControlButton>
+				{/if}
+			</ControlGroup>
+		</Control>
 		{#if zoom < 13}
 			{#each firePos as lngLat}
 				<Marker
 					{lngLat}
 					class="grid h-3 w-3 place-items-center rounded-full bg-red-600 text-black  focus:outline-2 focus:outline-black"
 					on:click={() => {
-						map?.flyTo({
+						map.flyTo({
 							center: lngLat,
 							zoom: 16,
 							speed: 1.25,
@@ -150,5 +181,55 @@
 				/>
 			{/each}
 		{/if}
-	</Control>
+		{#if reportingStatus == "selectingPos"}
+			<Marker bind:lngLat={reportingPos} draggable>
+				<img src="pin.svg" alt="" class="h-12 w-12" />
+			</Marker>
+			<span
+				class=" absolute left-1/2 top-[90%] w-full -translate-x-1/2 -translate-y-1/2 text-center text-lg text-white opacity-50"
+			>
+				Drag the pin to report the fire position, then click the checkmark to confirm.
+			</span>
+		{:else if reportingStatus == "fillingDetail"}
+			<form
+				class="absolute left-1/2 top-1/2 w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-lg opacity-80 md:w-1/3"
+				on:submit|preventDefault={() => {
+					reportingStatus = "close";
+				}}
+			>
+				<div class="mb-6">
+					<label for="image" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+						Upload Images
+					</label>
+					<input
+						type="file"
+						id="image"
+						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+						accept="image/*"
+					/>
+				</div>
+				<div class="mb-6">
+					<label for="description" class="mb-2 block text-sm font-medium text-gray-900">
+						Description
+					</label>
+					<textarea
+						id="description"
+						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+					/>
+				</div>
+				<button
+					type="submit"
+					class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800"
+				>
+					Submit
+				</button>
+			</form>
+
+			<span
+				class=" absolute left-1/2 top-[90%] w-full -translate-x-1/2 -translate-y-1/2 text-center text-lg text-white opacity-50"
+			>
+				Describe the fire in detail.
+			</span>
+		{/if}
+	{/if}
 </MapLibre>
