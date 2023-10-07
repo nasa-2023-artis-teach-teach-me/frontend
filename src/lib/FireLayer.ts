@@ -3,6 +3,7 @@ import * as THREE from "three";
 import type { CustomLayerInterface } from "maplibre-gl";
 // @ts-ignore
 import particleFire from "three-particle-fire";
+import type { FireData } from "../models/fire-data";
 
 particleFire.install({ THREE: THREE });
 
@@ -43,11 +44,7 @@ export class FireLayer implements CustomLayerInterface {
 
 	private l: THREE.Matrix4;
 
-	constructor(
-		private fireCoords: maplibregl.LngLatLike[],
-		private map: maplibregl.Map,
-		private scale: number,
-	) {
+	constructor(private fires: FireData[], private map: maplibregl.Map, private scale: number) {
 		const modelAsMercatorCoordinate = maplibregl.MercatorCoordinate.fromLngLat(
 			this.cameraOrigin,
 			this.modelAltitude,
@@ -106,8 +103,10 @@ export class FireLayer implements CustomLayerInterface {
 		this.renderer.autoClear = false;
 		this.setFireScale(this.scale);
 
-		for (const fireCoord of this.fireCoords) {
-			this.addNewFire(fireCoord);
+		for (const fireCoord of this.fires
+			.map((fire) => fire.positions)
+			.reduce((a, b) => a.concat(b))) {
+			this.addNewFire(fireCoord as maplibregl.LngLatLike);
 		}
 	}
 

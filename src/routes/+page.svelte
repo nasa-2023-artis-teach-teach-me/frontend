@@ -12,20 +12,45 @@
 	import { tweened } from "svelte/motion";
 	import { cubicOut } from "svelte/easing";
 	import { FireLayer } from "$lib/FireLayer";
-	import type { LngLatLike } from "maplibre-gl";
+	import type { LngLat, Map } from "maplibre-gl";
 	import { Drawer, getDrawerStore } from "@skeletonlabs/skeleton";
 	import type { DrawerSettings } from "@skeletonlabs/skeleton";
+	import { Toast, getToastStore } from "@skeletonlabs/skeleton";
+	import type { ToastSettings } from "@skeletonlabs/skeleton";
+	import type { FireData } from "../models/fire-data";
+	import type { Report } from "../models/report";
+	import type * as geojson from "geojson";
 
 	export let data;
 
 	const drawerStore = getDrawerStore();
+	const toastStore = getToastStore();
 
 	let fireLayer: FireLayer;
 	let zoom = 10;
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
-	let reportingPos: LngLatLike;
+	let reportingPos: LngLat;
 	let bound: "none" | "up" | "down" = "none";
-	let selectedPos: LngLatLike | null = null;
+	let selectedFireData: FireData | null = null;
+	let selectedReports: Report[] | null = null;
+
+	$: if (selectedFireData) {
+		const promiseArr = [];
+		for (const position of selectedFireData.positions) {
+			promiseArr.push(
+				fetch(`https://api.nasa.n0b.me/api/report/${position[0]}/${position[1]}`).then(
+					(res) => res.json() as Promise<Report[]>,
+				),
+			);
+		}
+
+		Promise.all(promiseArr).then((reports) => {
+			selectedReports = reports.flat();
+		});
+	}
+
+	let fileEl: HTMLInputElement;
+	let descriptionEl: HTMLTextAreaElement;
 
 	let drawerSettings: DrawerSettings = {
 		position: window.innerWidth < 768 ? "bottom" : "left",
@@ -35,6 +60,10 @@
 		rounded: "rounded-lg",
 		padding: "p-2",
 	};
+	let toastSettings: ToastSettings = {
+		message: "",
+		timeout: 10000,
+	};
 
 	window.addEventListener("resize", () => {
 		if (window.innerWidth < 768) {
@@ -43,11 +72,77 @@
 			drawerSettings.position = "left";
 		}
 	});
+
+	function uploadReport(map: Map) {
+		reportingStatus = "close";
+
+		const formData = new FormData();
+		formData.append("latitude", reportingPos.lat.toString());
+		formData.append("longitude", reportingPos.lng.toString());
+		formData.append("message", descriptionEl.value);
+		if (fileEl.files) {
+			// for (let i = 0; i < fileEl.files.length; i++) {
+			// 	formData.append("image", fileEl.files[i]);
+			// }
+			formData.append("image", fileEl.files[0]);
+		}
+
+		fetch("https://api.nasa.n0b.me/api/report", {
+			method: "POST",
+			body: formData,
+		})
+			.then((res) => {
+				if (res.ok) {
+					toastSettings.message = "Upload successful.";
+					toastStore.trigger(toastSettings);
+
+					const date = new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000);
+					const year = date.getFullYear();
+					const month = date.getMonth() + 1;
+					const day = date.getDate();
+
+					const dateString = `${year}-${month < 10 ? "0" + month : month}-${
+						day < 10 ? "0" + day : day
+					}`;
+
+					Promise.all([
+						fetch(`https://api.nasa.n0b.me/api/fire/date/${dateString}`),
+						fetch(`https://api.nasa.n0b.me/api/fire/raw/${dateString}`),
+					]).then(async (resp) => {
+						data.geojson = (await resp[0].json()) as geojson.GeoJSON;
+						data.fires = (await resp[1].json()) as FireData[];
+
+						fireLayer = new FireLayer(data.fires, map, zoom);
+						map.removeLayer("fire-layer");
+						map.addLayer(fireLayer);
+					});
+				} else {
+					toastSettings.message = "Upload failed.";
+					toastStore.trigger(toastSettings);
+
+					console.log(res);
+				}
+			})
+			.catch((e) => {
+				toastSettings.message = "Upload failed.";
+				toastStore.trigger(toastSettings);
+
+				console.log(e);
+			});
+	}
 </script>
 
+<Toast />
 <Drawer>
 	<div class=" p-6">
-		{selectedPos}
+		{#if selectedReports}
+			{#each selectedReports as selectedReport}
+				{#if selectedReport.image_url !== ""}
+					<img src={selectedReport.image_url} alt="" />
+				{/if}
+				<span>{selectedReport.message}</span>
+			{/each}
+		{/if}
 	</div>
 </Drawer>
 <MapLibre
@@ -62,11 +157,7 @@
 		const map = e.detail;
 		map.setMaxZoom(16);
 
-		fireLayer = new FireLayer(
-			data.fires.map((fireData) => fireData.center),
-			map,
-			zoom,
-		);
+		fireLayer = new FireLayer(data.fires, map, zoom);
 		map.addLayer(fireLayer);
 	}}
 	on:zoom={() => {
@@ -193,16 +284,16 @@
 				}}
 			/>
 		</GeoJSON>
-		{#if 7 < zoom}
+		{#if zoom > 5}
 			{#each data.fires as fireData (fireData.center)}
 				<Marker
 					lngLat={fireData.center}
-					class="hover:scale-120 grid h-3 w-3 place-items-center rounded-full bg-red-600 text-black transition-[background-color] hover:bg-red-300 focus:outline-2 focus:outline-black"
+					class="hover:scale-120 grid h-5 w-5 place-items-center rounded-full "
 					on:click={() => {
-						selectedPos = fireData.center;
+						selectedFireData = fireData;
 						map.flyTo({
 							center: fireData.center,
-							zoom: window.innerWidth < 768 ? 14 : 16,
+							zoom: window.innerWidth < 768 ? 12 : 14,
 							speed: 1.25,
 							padding: {
 								left: window.innerWidth < 768 ? 0 : window.innerWidth / 4,
@@ -211,7 +302,9 @@
 						});
 						drawerStore.open(drawerSettings);
 					}}
-				/>
+				>
+					<img src="pin.svg" alt="" />
+				</Marker>
 			{/each}
 		{/if}
 		{#if reportingStatus == "selectingPos"}
@@ -226,9 +319,7 @@
 		{:else if reportingStatus == "fillingDetail"}
 			<form
 				class="absolute left-1/2 top-1/2 w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-lg opacity-80 md:w-1/3"
-				on:submit|preventDefault={() => {
-					reportingStatus = "close";
-				}}
+				on:submit|preventDefault={() => uploadReport(map)}
 			>
 				<div class="mb-6">
 					<label for="image" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
@@ -239,6 +330,7 @@
 						id="image"
 						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
 						accept="image/*"
+						bind:this={fileEl}
 					/>
 				</div>
 				<div class="mb-6">
@@ -248,6 +340,7 @@
 					<textarea
 						id="description"
 						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+						bind:this={descriptionEl}
 					/>
 				</div>
 				<button
