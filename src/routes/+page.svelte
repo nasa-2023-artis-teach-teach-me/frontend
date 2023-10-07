@@ -13,12 +13,26 @@
 	import { cubicOut } from "svelte/easing";
 	import { FireLayer } from "$lib/FireLayer";
 	import type { LngLatLike } from "maplibre-gl";
+	import { Drawer, getDrawerStore } from "@skeletonlabs/skeleton";
+	import type { DrawerSettings } from "@skeletonlabs/skeleton";
+
+	const drawerStore = getDrawerStore();
 
 	let fireLayer: FireLayer;
 	let zoom = 10;
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
 	let reportingPos: LngLatLike;
 	let bound: "none" | "up" | "down" = "none";
+	let selectedPos: LngLatLike | null = null;
+
+	let drawerSettings: DrawerSettings = {
+		position: window.innerWidth < 768 ? "bottom" : "left",
+		bgDrawer: "bg-white",
+		bgBackdrop: "bg-[#0005]",
+		width: "h-1/3 w-full md:w-1/4 md:h-full",
+		rounded: "rounded-lg",
+		padding: "p-2",
+	};
 
 	const firePos: LngLatLike[] = [
 		[-76.787148, 35.479481],
@@ -62,8 +76,21 @@
 		[-95.378006, 34.523849],
 		[-96.865967, 34.745548],
 	];
+
+	window.addEventListener("resize", () => {
+		if (window.innerWidth < 768) {
+			drawerSettings.position = "bottom";
+		} else {
+			drawerSettings.position = "left";
+		}
+	});
 </script>
 
+<Drawer>
+	<div class=" p-6">
+		{selectedPos}
+	</div>
+</Drawer>
 <MapLibre
 	center={[-80.130936, 27.016399]}
 	bind:zoom
@@ -74,7 +101,7 @@
 	bearing={-15}
 	on:load={(e) => {
 		const map = e.detail;
-		map.setMaxZoom(18);
+		map.setMaxZoom(16);
 
 		fireLayer = new FireLayer(firePos, map, zoom);
 		map.addLayer(fireLayer);
@@ -154,33 +181,35 @@
 					<img src="rotate-r.svg" alt="" class=" h-3 w-3" />
 				</ControlButton>
 			</ControlGroup>
-			<ControlGroup>
-				{#if reportingStatus == "close"}
-					<ControlButton
-						on:click={() => {
-							reportingStatus = "selectingPos";
-							reportingPos = map.getCenter();
-						}}
-					>
-						<img src="report.svg" alt="" class=" h-5 w-5" />
-					</ControlButton>
-				{:else if reportingStatus == "selectingPos"}
-					<ControlButton
-						on:click={() => {
-							reportingStatus = "fillingDetail";
-						}}
-					>
-						<img src="confirm.svg" alt="" class=" h-4 w-4" />
-					</ControlButton>
-					<ControlButton
-						on:click={() => {
-							reportingStatus = "close";
-						}}
-					>
-						<img src="cancel.svg" alt="" class=" h-4 w-4" />
-					</ControlButton>
-				{/if}
-			</ControlGroup>
+			{#if reportingStatus !== "fillingDetail"}
+				<ControlGroup>
+					{#if reportingStatus == "close"}
+						<ControlButton
+							on:click={() => {
+								reportingStatus = "selectingPos";
+								reportingPos = map.getCenter();
+							}}
+						>
+							<img src="report.svg" alt="" class=" h-5 w-5" />
+						</ControlButton>
+					{:else if reportingStatus == "selectingPos"}
+						<ControlButton
+							on:click={() => {
+								reportingStatus = "fillingDetail";
+							}}
+						>
+							<img src="confirm.svg" alt="" class=" h-4 w-4" />
+						</ControlButton>
+						<ControlButton
+							on:click={() => {
+								reportingStatus = "close";
+							}}
+						>
+							<img src="cancel.svg" alt="" class=" h-4 w-4" />
+						</ControlButton>
+					{/if}
+				</ControlGroup>
+			{/if}
 		</Control>
 		<GeoJSON
 			id="earthquakes"
@@ -414,11 +443,17 @@
 					{lngLat}
 					class="hover:scale-120 grid h-3 w-3 place-items-center rounded-full bg-red-600 text-black transition-[background-color] hover:bg-red-300 focus:outline-2 focus:outline-black"
 					on:click={() => {
+						selectedPos = lngLat;
 						map.flyTo({
 							center: lngLat,
-							zoom: 16,
+							zoom: window.innerWidth < 768 ? 14 : 16,
 							speed: 1.25,
+							padding: {
+								left: window.innerWidth < 768 ? 0 : window.innerWidth / 4,
+								bottom: window.innerWidth < 768 ? window.innerHeight / 3 : 0,
+							},
 						});
+						drawerStore.open(drawerSettings);
 					}}
 				/>
 			{/each}
@@ -464,6 +499,14 @@
 					class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800"
 				>
 					Submit
+				</button>
+				<button
+					class="absolute right-0 top-0 bg-white p-3 text-sm text-gray-900 opacity-80 hover:opacity-100"
+					on:click={() => {
+						reportingStatus = "selectingPos";
+					}}
+				>
+					<img src="close.svg" alt="" class="h-5 w-5" />
 				</button>
 			</form>
 
