@@ -166,12 +166,21 @@
 			{#each selectedReports as selectedReport}
 				<div class=" flex flex-col gap-4 rounded-md bg-gray-100 p-4">
 					<div class=" flex items-center gap-4">
-						<img
-							src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/1024px-User-avatar.svg.png"
-							class="h-8 w-8 rounded-full bg-white"
-							alt=""
-						/>
-						<span class=" text-xs font-bold"> Anonymous </span>
+						{#if selectedReport.from_nasa}
+							<img
+								src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/NASA_logo.svg/1200px-NASA_logo.svg.png"
+								class="h-8 w-8"
+								alt=""
+							/>
+							<span class=" text-xs font-bold"> NASA </span>
+						{:else}
+							<img
+								src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/1024px-User-avatar.svg.png"
+								class="h-8 w-8 rounded-full bg-white"
+								alt=""
+							/>
+							<span class=" text-xs font-bold"> Anonymous </span>
+						{/if}
 					</div>
 					<span class=" text-xs text-gray-600">
 						{new Date(selectedReport.timestamp).toLocaleString()}
@@ -179,7 +188,10 @@
 					<div class=" h-px border-0 bg-gray-300" />
 					<span class=" text-sm">{selectedReport.message}</span>
 					{#if selectedReport.image_url !== ""}
-						<img src={"http://" + selectedReport.image_url} alt="" />
+						<img src={"https://" + selectedReport.image_url} alt="" />
+					{/if}
+					{#if selectedReport.ai_message}
+						<span class=" text-sm">{selectedReport.ai_message}</span>
 					{/if}
 				</div>
 			{/each}

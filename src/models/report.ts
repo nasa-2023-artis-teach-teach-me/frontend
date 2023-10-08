@@ -5,5 +5,6 @@ export interface Report {
 	message: string;
 	longitude: string;
 	latitude: string;
-	ai_message: string;
+	ai_message?: string;
+	from_nasa?: boolean;
 }
