@@ -83,6 +83,7 @@
 		formData.append("longitude", reportingPos.lng.toString());
 		formData.append("message", descriptionEl.value);
 		formData.append("category", reportingCategory);
+		formData.append("from_nasa", "false");
 		if (fileEl.files && fileEl.files[0]) {
 			// for (let i = 0; i < fileEl.files.length; i++) {
 			// 	formData.append("image", fileEl.files[i]);
