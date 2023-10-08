@@ -318,6 +318,23 @@
 					{/if}
 				</ControlGroup>
 			{/if}
+			<ControlGroup>
+				<ControlButton
+					on:click={() => {
+						selectedReports = null;
+
+						fetch(`https://api.nasa.n0b.me/api/report/manual`)
+							.then((res) => res.json())
+							.then((reports) => {
+								selectedReports = reports;
+							});
+
+						drawerStore.open(drawerSettings);
+					}}
+				>
+					<img src="history.svg" alt="" class=" mb-0.5 h-5 w-5" />
+				</ControlButton>
+			</ControlGroup>
 		</Control>
 		<GeoJSON data={data.geojson}>
 			<HeatmapLayer
