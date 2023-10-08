@@ -5,4 +5,5 @@ export interface Report {
 	message: string;
 	longitude: string;
 	latitude: string;
+	ai_message: string;
 }

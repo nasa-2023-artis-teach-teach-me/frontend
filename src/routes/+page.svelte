@@ -26,8 +26,11 @@
 
 	let fireLayer: FireLayer;
 	let zoom = 10;
+
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
 	let reportingPos: LngLat;
+	let reportingCategory: "fire-prevention" | "fire-report" | "recovery" = "fire-report";
+
 	let bound: "none" | "up" | "down" = "none";
 	let selectedFireData: FireData | null = null;
 	let selectedReports: Report[] | null = null;
@@ -78,6 +81,7 @@
 		formData.append("latitude", reportingPos.lat.toString());
 		formData.append("longitude", reportingPos.lng.toString());
 		formData.append("message", descriptionEl.value);
+		formData.append("category", reportingCategory);
 		if (fileEl.files && fileEl.files[0]) {
 			// for (let i = 0; i < fileEl.files.length; i++) {
 			// 	formData.append("image", fileEl.files[i]);
@@ -358,8 +362,33 @@
 				class="absolute left-1/2 top-1/2 w-[90vw] -translate-x-1/2 -translate-y-1/2 rounded bg-white p-6 text-lg opacity-80 md:w-1/3"
 				on:submit|preventDefault={() => uploadReport(map)}
 			>
+				<div class="mb-6 font-bold">Submit a New Report</div>
 				<div class="mb-6">
-					<label for="image" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+					<label class="mb-2 block text-sm font-bold text-gray-400" for="category">
+						Category
+					</label>
+					<div class=" flex flex-col gap-2">
+						{#each ["fire-prevention", "fire-report", "recovery"] as category}
+							<div class=" flex items-center gap-2">
+								<input
+									type="radio"
+									name="category"
+									class="h-4 w-4 rounded-full border border-gray-300"
+									value={category}
+									bind:group={reportingCategory}
+								/>
+								<span class="text-sm font-medium text-gray-900">
+									{category
+										.split("-")
+										.map((s) => s.charAt(0).toUpperCase() + s.substring(1))
+										.join(" ")}
+								</span>
+							</div>
+						{/each}
+					</div>
+				</div>
+				<div class="mb-6">
+					<label for="image" class="mb-2 block text-sm font-bold text-gray-400">
 						Upload Images
 					</label>
 					<input
@@ -371,7 +400,7 @@
 					/>
 				</div>
 				<div class="mb-6">
-					<label for="description" class="mb-2 block text-sm font-medium text-gray-900">
+					<label for="description" class="mb-2 block text-sm font-bold text-gray-400">
 						Description
 					</label>
 					<textarea
