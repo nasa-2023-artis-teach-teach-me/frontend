@@ -139,6 +139,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>UFIS (Ultimate Fire Information System)</title>
+</svelte:head>
+
 <Toast />
 <Drawer>
 	<div class=" flex flex-col gap-4 p-6">
