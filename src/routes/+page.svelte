@@ -29,7 +29,8 @@
 
 	let reportingStatus: "close" | "selectingPos" | "fillingDetail" = "close";
 	let reportingPos: LngLat;
-	let reportingCategory: "fire-prevention" | "fire-report" | "recovery" = "fire-report";
+	let reportingCategory: "fire-prevention-consultation" | "fire-report" | "recovery" =
+		"fire-report";
 
 	let bound: "none" | "up" | "down" = "none";
 	let selectedFireData: FireData | null = null;
@@ -315,11 +316,29 @@
 						["linear"],
 						["heatmap-density"],
 						0,
-						"rgba(255,255,255,0)",
+						"rgba(0,0,0,0)",
+						1,
+						"rgb(0,0,63)",
+					],
+					"heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 7, 20, 16, 2000],
+					"heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 10, 1, 20, 0],
+				}}
+			/>
+
+			<HeatmapLayer
+				maxzoom={20}
+				paint={{
+					"heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+					"heatmap-color": [
+						"interpolate",
+						["linear"],
+						["heatmap-density"],
+						0,
+						"rgba(0,0,63,0)",
 						1,
 						"rgb(255,34,0)",
 					],
-					"heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 7, 20, 16, 1000],
+					"heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 7, 15, 16, 1000],
 					"heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 10, 1, 20, 0],
 				}}
 			/>
@@ -368,7 +387,7 @@
 						Category
 					</label>
 					<div class=" flex flex-col gap-2">
-						{#each ["fire-prevention", "fire-report", "recovery"] as category}
+						{#each ["fire-prevention-consultation", "fire-report", "recovery"] as category}
 							<div class=" flex items-center gap-2">
 								<input
 									type="radio"
