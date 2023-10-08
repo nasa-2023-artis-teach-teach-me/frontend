@@ -385,6 +385,7 @@
 				<div class="mb-6">
 					<label class="mb-2 block text-sm font-bold text-gray-400" for="category">
 						Category
+						<span class=" text-red-600">*</span>
 					</label>
 					<div class=" flex flex-col gap-2">
 						{#each ["fire-prevention-consultation", "fire-report", "recovery"] as category}
@@ -407,6 +408,18 @@
 					</div>
 				</div>
 				<div class="mb-6">
+					<label for="description" class="mb-2 block text-sm font-bold text-gray-400">
+						Description
+						<span class=" text-red-600">*</span>
+					</label>
+					<textarea
+						id="description"
+						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
+						bind:this={descriptionEl}
+						required
+					/>
+				</div>
+				<div class="mb-6">
 					<label for="image" class="mb-2 block text-sm font-bold text-gray-400">
 						Upload Images
 					</label>
@@ -416,16 +429,6 @@
 						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
 						accept="image/*"
 						bind:this={fileEl}
-					/>
-				</div>
-				<div class="mb-6">
-					<label for="description" class="mb-2 block text-sm font-bold text-gray-400">
-						Description
-					</label>
-					<textarea
-						id="description"
-						class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900"
-						bind:this={descriptionEl}
 					/>
 				</div>
 				<button
