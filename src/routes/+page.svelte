@@ -326,7 +326,7 @@
 						fetch(`https://api.nasa.n0b.me/api/report/manual`)
 							.then((res) => res.json())
 							.then((reports) => {
-								selectedReports = reports;
+								selectedReports = reports.reverse();
 							});
 
 						drawerStore.open(drawerSettings);
