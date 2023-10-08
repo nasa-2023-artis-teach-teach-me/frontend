@@ -140,7 +140,7 @@
 </script>
 
 <svelte:head>
-	<title>UFIS (Ultimate Fire Information System)</title>
+	<title>Fire Need</title>
 </svelte:head>
 
 <Toast />
@@ -339,7 +339,7 @@
 						drawerStore.open(drawerSettings);
 					}}
 				>
-					<img src="pin.svg" alt="" />
+					<img src="pin-white.svg" alt="" />
 				</Marker>
 			{/each}
 		{/if}
