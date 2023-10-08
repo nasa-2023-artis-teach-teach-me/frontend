@@ -12,11 +12,9 @@
 	import { tweened } from "svelte/motion";
 	import { cubicOut } from "svelte/easing";
 	import { FireLayer } from "$lib/FireLayer";
-	import type { LngLat, Map } from "maplibre-gl";
-	import { Drawer, getDrawerStore } from "@skeletonlabs/skeleton";
-	import type { DrawerSettings } from "@skeletonlabs/skeleton";
-	import { Toast, getToastStore } from "@skeletonlabs/skeleton";
-	import type { ToastSettings } from "@skeletonlabs/skeleton";
+	import { LngLat, type Map } from "maplibre-gl";
+	import { Drawer, getDrawerStore, Toast, getToastStore } from "@skeletonlabs/skeleton";
+	import type { DrawerSettings, ToastSettings } from "@skeletonlabs/skeleton";
 	import type { FireData } from "../models/fire-data";
 	import type { Report } from "../models/report";
 	import type * as geojson from "geojson";
@@ -80,7 +78,7 @@
 		formData.append("latitude", reportingPos.lat.toString());
 		formData.append("longitude", reportingPos.lng.toString());
 		formData.append("message", descriptionEl.value);
-		if (fileEl.files) {
+		if (fileEl.files && fileEl.files[0]) {
 			// for (let i = 0; i < fileEl.files.length; i++) {
 			// 	formData.append("image", fileEl.files[i]);
 			// }
@@ -96,7 +94,7 @@
 					toastSettings.message = "Upload successful.";
 					toastStore.trigger(toastSettings);
 
-					const date = new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000);
+					const date = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
 					const year = date.getFullYear();
 					const month = date.getMonth() + 1;
 					const day = date.getDate();
@@ -130,17 +128,51 @@
 				console.log(e);
 			});
 	}
+
+	function handleExistingPosReport() {
+		if (!selectedFireData) return;
+
+		const coord = selectedFireData.center as [number, number];
+		reportingPos = new LngLat(coord[0], coord[1]);
+		reportingStatus = "fillingDetail";
+		drawerStore.close();
+	}
 </script>
 
 <Toast />
 <Drawer>
-	<div class=" p-6">
+	<div class=" flex flex-col gap-4 p-6">
+		<div class=" flex items-center justify-between">
+			<span class=" font-bold">Reports</span>
+			{#if false}
+				<button
+					on:click={handleExistingPosReport}
+					class=" flex h-7 w-7 items-center justify-center rounded-sm bg-gray-100"
+				>
+					<img src="report.svg" alt="" class=" h-5 w-5" />
+				</button>
+			{/if}
+		</div>
 		{#if selectedReports}
 			{#each selectedReports as selectedReport}
-				{#if selectedReport.image_url !== ""}
-					<img src={selectedReport.image_url} alt="" />
-				{/if}
-				<span>{selectedReport.message}</span>
+				<div class=" flex flex-col gap-4 rounded-md bg-gray-100 p-4">
+					<div class=" flex items-center gap-4">
+						<img
+							src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/User-avatar.svg/1024px-User-avatar.svg.png"
+							class="h-8 w-8 rounded-full bg-white"
+							alt=""
+						/>
+						<span class=" text-xs font-bold"> Anonymous </span>
+					</div>
+					<span class=" text-xs text-gray-600">
+						{new Date(selectedReport.timestamp).toLocaleString()}
+					</span>
+					<div class=" h-px border-0 bg-gray-300" />
+					<span class=" text-sm">{selectedReport.message}</span>
+					{#if selectedReport.image_url !== ""}
+						<img src={"http://" + selectedReport.image_url} alt="" />
+					{/if}
+				</div>
 			{/each}
 		{/if}
 	</div>

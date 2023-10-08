@@ -4,7 +4,7 @@ import type { GeoJSON } from "geojson";
 export const ssr = false;
 
 export const load = async ({ fetch }) => {
-	const date = new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000);
+	const date = new Date(new Date().getTime() - 24 * 60 * 60 * 1000);
 	const year = date.getFullYear();
 	const month = date.getMonth() + 1;
 	const day = date.getDate();
