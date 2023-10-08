@@ -22,7 +22,7 @@ export class FireLayer implements CustomLayerInterface {
 		rotateX: number;
 		rotateY: number;
 		rotateZ: number;
-		scale: number;
+		zoom: number;
 	};
 
 	private scene: THREE.Scene = new THREE.Scene();
@@ -44,7 +44,7 @@ export class FireLayer implements CustomLayerInterface {
 
 	private l: THREE.Matrix4;
 
-	constructor(private fires: FireData[], private map: maplibregl.Map, private scale: number) {
+	constructor(private fires: FireData[], private map: maplibregl.Map, private zoom: number) {
 		const modelAsMercatorCoordinate = maplibregl.MercatorCoordinate.fromLngLat(
 			this.cameraOrigin,
 			this.modelAltitude,
@@ -57,7 +57,7 @@ export class FireLayer implements CustomLayerInterface {
 			rotateX: this.modelRotate[0],
 			rotateY: this.modelRotate[1],
 			rotateZ: this.modelRotate[2],
-			scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits(),
+			zoom: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits(),
 		};
 
 		this.l = new THREE.Matrix4()
@@ -68,9 +68,9 @@ export class FireLayer implements CustomLayerInterface {
 			)
 			.scale(
 				new THREE.Vector3(
-					this.modelTransform.scale,
-					-this.modelTransform.scale,
-					this.modelTransform.scale,
+					this.modelTransform.zoom,
+					-this.modelTransform.zoom,
+					this.modelTransform.zoom,
 				),
 			)
 			.multiply(
@@ -101,7 +101,7 @@ export class FireLayer implements CustomLayerInterface {
 		});
 
 		this.renderer.autoClear = false;
-		this.setFireScale(this.scale);
+		this.setFireScale(this.zoom);
 
 		for (const fireCoord of this.fires
 			.map((fire) => fire.positions)
@@ -115,9 +115,9 @@ export class FireLayer implements CustomLayerInterface {
 
 		const modelPos = maplibregl.MercatorCoordinate.fromLngLat(modelOrigin, this.modelAltitude);
 		this.fireMesh?.position.set(
-			(modelPos.x - this.modelTransform.translateX) / this.modelTransform.scale,
+			(modelPos.x - this.modelTransform.translateX) / this.modelTransform.zoom,
 			0,
-			(modelPos.y - this.modelTransform.translateY) / this.modelTransform.scale,
+			(modelPos.y - this.modelTransform.translateY) / this.modelTransform.zoom,
 		);
 
 		this.scene.add(this.fireMesh);
@@ -146,12 +146,16 @@ export class FireLayer implements CustomLayerInterface {
 					number,
 			  ],
 	) {
+		console.log("render");
 		const m = new THREE.Matrix4().fromArray(matrix);
 
 		this.camera.projectionMatrix = m.multiply(this.l);
 		this.renderer?.resetState();
 		this.renderer?.render(this.scene, this.camera);
-		this.map.triggerRepaint();
+
+		if (this.zoom > 10) {
+			this.map.triggerRepaint();
+		}
 
 		// @ts-ignore
 		this.fireMesh?.material.update(this.clock.getDelta());
@@ -161,12 +165,14 @@ export class FireLayer implements CustomLayerInterface {
 		this.renderer?.dispose();
 	}
 
-	setFireScale(scale: number) {
+	setFireScale(zoom: number) {
 		this.fireMat.setPerspective(
 			this.camera.fov,
-			Math.max(18 * scale - 200, 0) *
+			Math.max(18 * zoom - 200, 0) *
 				(this.renderer?.getSize(new THREE.Vector2(window.innerWidth, window.innerHeight)).height ||
 					0),
 		);
+
+		this.zoom = zoom;
 	}
 }
