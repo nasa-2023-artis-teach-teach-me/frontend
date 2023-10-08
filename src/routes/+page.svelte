@@ -339,14 +339,14 @@
 					}}
 				>
 					<img src="pin-white.svg" alt="" class=" h-6 w-6" />
-					<img src="pin-white.svg" alt="" class=" invisible h-6 w-6" />
+					<div class=" invisible h-6 w-6" />
 				</Marker>
 			{/each}
 		{/if}
 		{#if reportingStatus == "selectingPos"}
 			<Marker bind:lngLat={reportingPos} draggable>
 				<img src="pin.svg" alt="" class="h-12 w-12" />
-				<img src="pin.svg" alt="" class="invisible h-12 w-12" />
+				<div class="invisible h-12 w-12" />
 			</Marker>
 			<span
 				class=" absolute left-1/2 top-[90%] w-full -translate-x-1/2 -translate-y-1/2 text-center text-lg text-white opacity-50"

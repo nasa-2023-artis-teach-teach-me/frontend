@@ -146,7 +146,6 @@ export class FireLayer implements CustomLayerInterface {
 					number,
 			  ],
 	) {
-		console.log("render");
 		const m = new THREE.Matrix4().fromArray(matrix);
 
 		this.camera.projectionMatrix = m.multiply(this.l);
